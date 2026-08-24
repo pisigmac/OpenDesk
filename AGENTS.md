@@ -1,16 +1,16 @@
 # Auth — Agent Context
 
-Read this file first. Then read `code_map.md` for file-level navigation and `gaps_enhancements.md` for remaining product gaps. This directory is **only** the PiSigma Auth service.
+Read this file first. Then read `code_map.md` for file-level navigation and `gaps_enhancements.md` for remaining product gaps. This directory is **only** the OpenDesk Auth service.
 
 ## What this directory is
 
-Shared identity microservice for PiSigma products. Stack: Python 3.10+ / FastAPI / SQLAlchemy 2 / Pydantic v2 / Postgres or SQLite. Typed client: `client.ts` (`PisigmaAuth`). Tests: 56 in `tests/test_auth.py`.
+Shared identity microservice for OpenDesk Auth products. Stack: Python 3.10+ / FastAPI / SQLAlchemy 2 / Pydantic v2 / Postgres or SQLite. Typed client: `client.ts` (`OpenDesk Auth`). Tests: 56 in `tests/test_auth.py`.
 
 Health: `http://127.0.0.1:8090/health`. OpenAPI: `http://127.0.0.1:8090/docs`.
 
 ## Do / do not
 
-- **Do** change Auth under `src/pisigma_auth/`, `client.ts`, `tests/`, `migrations/`, `.env.example`, `README.md`.
+- **Do** change Auth under `src/opendesk_auth/`, `client.ts`, `tests/`, `migrations/`, `.env.example`, `README.md`.
 - **Do** keep Auth product-agnostic: no product names in source. Product access is `ProductGrant.audience` plus `AUTH_DEFAULT_AUDIENCES` at deploy time.
 - **Do not** generate ephemeral JWT keys. `_ensure_keys` must fail closed.
 - **Do not** put tokens in OAuth redirect **query** strings. Fragments only (`oauth.py` `_redirect_with_tokens`).
@@ -29,7 +29,7 @@ cp .env.example .env             # AUTH_DATABASE_URL + AUTH_ISSUER required
 # RSA keys required for token issuance:
 #   openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out private.pem
 #   openssl rsa -in private.pem -pubout -out public.pem
-pisigma-auth                     # uvicorn, AUTH_HOST + AUTH_PORT required
+opendesk-auth                     # uvicorn, AUTH_HOST + AUTH_PORT required
 # health: http://127.0.0.1:8090/health
 # openapi: http://127.0.0.1:8090/docs
 pytest tests/ -v                 # 56 tests, uses tmp SQLite + generated RSA
@@ -37,12 +37,12 @@ PYTHONPATH=src python3 migrations/run_migrations.py
 docker compose up -d             # Postgres :5433 + Auth :8090 (compose does not pass JWT keys)
 ```
 
-Env prefix is `AUTH_`. Settings live in `src/pisigma_auth/config.py` (`pydantic-settings`). Missing `AUTH_DATABASE_URL` or `AUTH_ISSUER` raises at settings load. Missing JWT keys raise at first token/JWKS use.
+Env prefix is `AUTH_`. Settings live in `src/opendesk_auth/config.py` (`pydantic-settings`). Missing `AUTH_DATABASE_URL` or `AUTH_ISSUER` raises at settings load. Missing JWT keys raise at first token/JWKS use.
 
 ## Mental model
 
 ```
-Client / SDK (client.ts PisigmaAuth)
+Client / SDK (client.ts OpenDesk Auth)
         │  HTTP JSON
         ▼
 FastAPI app (app.py create_app)
@@ -71,13 +71,13 @@ Issued by `crypto.issue_access_token`:
 | `email` | `User.email` |
 | `org_id` | Primary membership (first `owner`, else first membership) |
 | `workspace_id` | That membership's `workspace_id` (defaults to org id) |
-| `aud` | Always `["pisigma-auth", ...product audiences from grants]` |
+| `aud` | Always `["opendesk-auth", ...product audiences from grants]` |
 | `roles` | `{ audience: role }` from `ProductGrant` |
 | `iss` | `AUTH_ISSUER` |
 | `iat` / `exp` | now / now + `AUTH_ACCESS_TOKEN_MINUTES` (default 60) |
-| header `kid` | `AUTH_JWT_KID` (default `pisigma-auth-1`) |
+| header `kid` | `AUTH_JWT_KID` (default `opendesk-auth-1`) |
 
-Auth's own routes decode with `audience="pisigma-auth"`. Product services should decode with their own audience.
+Auth's own routes decode with `audience="opendesk-auth"`. Product services should decode with their own audience.
 
 Refresh tokens are opaque `token_urlsafe(48)`, stored as SHA-256 hex, single-use (revoked on rotate). Not JWTs. Lifetime `AUTH_REFRESH_TOKEN_DAYS` (default 30).
 
@@ -126,7 +126,7 @@ Public (no JWT):
 | GET | `/v1/oauth/{google,github}/start` | 501 if client_id empty |
 | GET | `/v1/oauth/{google,github}/callback` | |
 
-Bearer JWT (`aud` must include `pisigma-auth`):
+Bearer JWT (`aud` must include `opendesk-auth`):
 
 | Method | Path |
 |--------|------|
@@ -152,7 +152,7 @@ Rate-limit buckets (in-process memory, per IP): `login`, `register`, `password_r
 
 Audit actions emitted: `user.register`, `user.login`, `user.logout` (actor_id often null), `user.verify_email`, `user.forgot_password`, `user.reset_password`, `user.update_profile`, `user.change_password`, `user.revoke_session`, `user.delete`, `admin.set_grant`, `admin.suspend_user`, `admin.activate_user`.
 
-### SDK (`client.ts` → `PisigmaAuth`)
+### SDK (`client.ts` → `OpenDesk Auth`)
 
 Re-exported from `Tools/sdk/index.ts`. Covers register/login/refresh/logout/me/verify/forgot/reset/export/delete/listUsers/setGrant/queryAuditLog/checkHealth.
 
@@ -172,7 +172,7 @@ Re-exported from `Tools/sdk/index.ts`. Covers register/login/refresh/logout/me/v
 
 ## Config cheat sheet
 
-Required: `AUTH_DATABASE_URL`, `AUTH_ISSUER`, and for `pisigma-auth` CLI also `AUTH_HOST`, `AUTH_PORT`. JWT PEM or `*_FILE`.
+Required: `AUTH_DATABASE_URL`, `AUTH_ISSUER`, and for `opendesk-auth` CLI also `AUTH_HOST`, `AUTH_PORT`. JWT PEM or `*_FILE`.
 
 Important defaults (in `config.py`, not all listed in `.env.example`):
 
@@ -184,7 +184,7 @@ Important defaults (in `config.py`, not all listed in `.env.example`):
 | `password_min_length` | `8` | Uppercase/digit flags default off |
 | `access_token_minutes` | `60` | |
 | `refresh_token_days` | `30` | |
-| `jwt_kid` | `pisigma-auth-1` | Single key, no rotation set |
+| `jwt_kid` | `opendesk-auth-1` | Single key, no rotation set |
 | `introspection_api_key` | `""` | Empty disables `/introspect` |
 | `cors_origins` | `""` | Empty = no browser CORS |
 | `default_audiences` | `""` | Auto-grant on signup |
@@ -204,18 +204,18 @@ OAuth authorize/token/userinfo **URLs are hardcoded** in `oauth_providers.py` (G
 
 | Need | File |
 |------|------|
-| App factory, health, error envelope | `src/pisigma_auth/app.py` |
-| All env settings | `src/pisigma_auth/config.py` |
-| Domain logic | `src/pisigma_auth/services.py` |
-| JWT / bcrypt / token hash | `src/pisigma_auth/crypto.py` |
-| Tables | `src/pisigma_auth/models.py` |
-| Request/response types | `src/pisigma_auth/schemas.py` |
-| Register/login/me/sessions | `src/pisigma_auth/routes/auth.py` |
-| Google/GitHub | `src/pisigma_auth/routes/oauth.py`, `oauth_providers.py` |
-| Admin + audit query | `src/pisigma_auth/routes/admin.py` |
-| GDPR | `src/pisigma_auth/routes/me.py` |
-| JWKS + introspect | `src/pisigma_auth/routes/jwks.py` |
-| Orgs | `src/pisigma_auth/routes/orgs.py` |
+| App factory, health, error envelope | `src/opendesk_auth/app.py` |
+| All env settings | `src/opendesk_auth/config.py` |
+| Domain logic | `src/opendesk_auth/services.py` |
+| JWT / bcrypt / token hash | `src/opendesk_auth/crypto.py` |
+| Tables | `src/opendesk_auth/models.py` |
+| Request/response types | `src/opendesk_auth/schemas.py` |
+| Register/login/me/sessions | `src/opendesk_auth/routes/auth.py` |
+| Google/GitHub | `src/opendesk_auth/routes/oauth.py`, `oauth_providers.py` |
+| Admin + audit query | `src/opendesk_auth/routes/admin.py` |
+| GDPR | `src/opendesk_auth/routes/me.py` |
+| JWKS + introspect | `src/opendesk_auth/routes/jwks.py` |
+| Orgs | `src/opendesk_auth/routes/orgs.py` |
 | SDK | `client.ts` |
 | Tests | `tests/test_auth.py` |
 | Full file map | `code_map.md` |

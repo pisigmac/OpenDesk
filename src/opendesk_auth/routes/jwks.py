@@ -5,9 +5,9 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from pisigma_auth.config import get_settings
-from pisigma_auth.crypto import decode_access_token, public_jwk
-from pisigma_auth.schemas import IntrospectRequest, IntrospectResponse
+from opendesk_auth.config import get_settings
+from opendesk_auth.crypto import decode_access_token, public_jwk
+from opendesk_auth.schemas import IntrospectRequest, IntrospectResponse
 
 router = APIRouter(tags=["jwks"])
 bearer = HTTPBearer(auto_error=False)

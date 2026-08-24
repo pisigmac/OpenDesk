@@ -7,8 +7,8 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy.orm import Session
 
-from pisigma_auth.config import Settings, get_settings
-from pisigma_auth.crypto import (
+from opendesk_auth.config import Settings, get_settings
+from opendesk_auth.crypto import (
     generate_urlsafe_token,
     hash_password,
     hash_token,
@@ -16,7 +16,7 @@ from pisigma_auth.crypto import (
     new_refresh_token,
     verify_password,
 )
-from pisigma_auth.models import (
+from opendesk_auth.models import (
     AuditLogEvent,
     EmailVerificationToken,
     Identity,
@@ -27,7 +27,7 @@ from pisigma_auth.models import (
     RefreshToken,
     User,
 )
-from pisigma_auth.schemas import GrantOut, OrgOut, TokenResponse, UserOut
+from opendesk_auth.schemas import GrantOut, OrgOut, TokenResponse, UserOut
 
 
 def user_to_out(user: User) -> UserOut:
@@ -73,7 +73,7 @@ def issue_tokens(db: Session, user: User, settings: Settings | None = None) -> T
         roles=roles,
         settings=settings,
     )
-    from pisigma_auth.middleware import get_request_context
+    from opendesk_auth.middleware import get_request_context
 
     ctx = get_request_context()
     refresh = new_refresh_token()
@@ -593,7 +593,7 @@ def revoke_session(db: Session, user: User, session_id: str) -> bool:
 # ---------------------------------------------------------------------------
 
 def purge_stale_oauth_states(db: Session) -> int:
-    from pisigma_auth.models import OAuthState
+    from opendesk_auth.models import OAuthState
     settings = get_settings()
     cutoff = datetime.now(timezone.utc) - timedelta(seconds=settings.oauth_state_ttl_seconds)
     stale = db.query(OAuthState).filter(OAuthState.created_at < cutoff).all()

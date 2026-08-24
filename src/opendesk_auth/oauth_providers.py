@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from pisigma_auth.config import Settings
+from opendesk_auth.config import Settings
 
 
 @dataclass

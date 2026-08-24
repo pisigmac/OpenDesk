@@ -7,7 +7,7 @@ from threading import Lock
 
 from fastapi import HTTPException, Request, status
 
-from pisigma_auth.config import Settings, get_settings
+from opendesk_auth.config import Settings, get_settings
 
 
 def _client_ip(request: Request) -> str:

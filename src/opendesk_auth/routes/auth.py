@@ -8,15 +8,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from pisigma_auth.config import get_settings
-from pisigma_auth.crypto import decode_access_token
-from pisigma_auth.db import get_db
-from pisigma_auth.mail_client import build_password_reset_email, build_verification_email, send_mail
-from pisigma_auth.metrics import inc
-from pisigma_auth.middleware import get_request_context
-from pisigma_auth.models import User
-from pisigma_auth.rate_limit import rate_limit_dependency
-from pisigma_auth.schemas import (
+from opendesk_auth.config import get_settings
+from opendesk_auth.crypto import decode_access_token
+from opendesk_auth.db import get_db
+from opendesk_auth.mail_client import build_password_reset_email, build_verification_email, send_mail
+from opendesk_auth.metrics import inc
+from opendesk_auth.middleware import get_request_context
+from opendesk_auth.models import User
+from opendesk_auth.rate_limit import rate_limit_dependency
+from opendesk_auth.schemas import (
     ChangePasswordRequest,
     ForgotPasswordRequest,
     LoginRequest,
@@ -31,7 +31,7 @@ from pisigma_auth.schemas import (
     UserOut,
     VerifyEmailRequest,
 )
-from pisigma_auth.services import (
+from opendesk_auth.services import (
     authenticate_password,
     change_password,
     consume_password_reset_token,
@@ -52,7 +52,7 @@ from pisigma_auth.services import (
     verify_email_token,
 )
 
-logger = logging.getLogger("pisigma_auth.auth")
+logger = logging.getLogger("opendesk_auth.auth")
 router = APIRouter(prefix="/auth", tags=["auth"])
 bearer = HTTPBearer(auto_error=False)
 
@@ -64,7 +64,7 @@ def current_user(
     if not creds:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     try:
-        claims = decode_access_token(creds.credentials, audience="pisigma-auth")
+        claims = decode_access_token(creds.credentials, audience="opendesk-auth")
     except Exception as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
     user = db.query(User).filter(User.id == claims["sub"]).one_or_none()

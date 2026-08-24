@@ -1,6 +1,6 @@
-# PiSigma Auth
+# OpenDesk Auth
 
-Shared identity microservice for PiSigma products. **Product-agnostic:** no consumer product is hard-coded in Auth. Other services validate JWTs via JWKS and assign product grants via admin API or deployment env.
+Shared identity microservice for OpenDesk Auth products. **Product-agnostic:** no consumer product is hard-coded in Auth. Other services validate JWTs via JWKS and assign product grants via admin API or deployment env.
 
 ## Features
 
@@ -25,7 +25,7 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
 # Edit .env — at minimum set AUTH_JWT_PRIVATE_KEY / AUTH_JWT_PUBLIC_KEY
-pisigma-auth
+opendesk-auth
 # → http://127.0.0.1:8090
 ```
 
@@ -61,7 +61,7 @@ Example claims (after granting audience `myproduct`):
   "workspace_id": "…",
   "aud": ["myproduct"],
   "roles": { "myproduct": "operator" },
-  "iss": "https://auth.pisigma.local"
+  "iss": "https://auth.opendeskauth.local"
 }
 ```
 
@@ -216,9 +216,9 @@ Rate limits are per process. Run a single replica or put a shared limiter in fro
 ## TypeScript SDK
 
 ```typescript
-import { PisigmaAuth } from './client'
+import { OpenDesk Auth } from './client'
 
-const auth = new PisigmaAuth({ baseUrl: 'http://127.0.0.1:8090' })
+const auth = new OpenDesk Auth({ baseUrl: 'http://127.0.0.1:8090' })
 
 // Auth flows
 await auth.register({ email, password })

@@ -16,7 +16,7 @@ services:
       - "8090:8090"
     environment:
       AUTH_DATABASE_URL: postgresql+psycopg://auth:auth@db:5432/auth
-      AUTH_ISSUER: ${AUTH_ISSUER:-https://auth.pisigma.local}
+      AUTH_ISSUER: ${AUTH_ISSUER:-https://auth.opendeskauth.local}
       AUTH_HOST: 0.0.0.0
       AUTH_PORT: 8090
       AUTH_CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://localhost:8787,http://localhost:8090

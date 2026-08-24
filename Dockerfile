@@ -6,4 +6,4 @@ COPY static ./static
 RUN pip install --no-cache-dir -e ".[postgres]"
 ENV AUTH_HOST=0.0.0.0 AUTH_PORT=8090
 EXPOSE 8090
-CMD ["pisigma-auth"]
+CMD ["opendesk-auth"]

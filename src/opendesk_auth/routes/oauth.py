@@ -10,18 +10,18 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
-from pisigma_auth.config import get_settings
-from pisigma_auth.db import get_db
-from pisigma_auth.models import OAuthState
-from pisigma_auth.oauth_providers import (
+from opendesk_auth.config import get_settings
+from opendesk_auth.db import get_db
+from opendesk_auth.models import OAuthState
+from opendesk_auth.oauth_providers import (
     exchange_github_code,
     exchange_google_code,
     github_authorize_url,
     google_authorize_url,
 )
-from pisigma_auth.services import find_or_create_oauth_user, issue_tokens, purge_stale_oauth_states
+from opendesk_auth.services import find_or_create_oauth_user, issue_tokens, purge_stale_oauth_states
 
-logger = logging.getLogger("pisigma_auth.oauth")
+logger = logging.getLogger("opendesk_auth.oauth")
 router = APIRouter(prefix="/oauth", tags=["oauth"])
 
 

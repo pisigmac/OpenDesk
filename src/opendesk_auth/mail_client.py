@@ -1,4 +1,4 @@
-"""Thin client for PiSigma Mail service."""
+"""Thin client for Mail service."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from typing import Any
 
 import httpx
 
-from pisigma_auth.config import get_settings
+from opendesk_auth.config import get_settings
 
 
 def build_verification_email(to: str, token: str) -> dict[str, Any]:
@@ -15,7 +15,7 @@ def build_verification_email(to: str, token: str) -> dict[str, Any]:
     link = f"{base_url}/verify-email?token={token}"
     return {
         "to": to,
-        "subject": "Verify your PiSigma account",
+        "subject": "Verify your OpenDesk Auth account",
         "text": f"Please verify your email by visiting: {link}",
         "html": f'<p>Please <a href="{link}">verify your email</a>.</p>',
         "tags": ["auth", "verify-email"],
@@ -28,7 +28,7 @@ def build_password_reset_email(to: str, token: str) -> dict[str, Any]:
     link = f"{base_url}/reset-password?token={token}"
     return {
         "to": to,
-        "subject": "Reset your PiSigma password",
+        "subject": "Reset your OpenDesk Auth password",
         "text": f"Reset your password by visiting: {link}",
         "html": f'<p><a href="{link}">Reset your password</a>.</p>',
         "tags": ["auth", "reset-password"],

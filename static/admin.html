@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>PiSigma Auth — Operator console</title>
+  <title>OpenDesk Auth — Operator console</title>
   <style>
     :root {
       --ink: #14181f;
@@ -163,7 +163,7 @@
 <body>
   <div id="login-screen" class="login-wrap">
     <form class="login" id="login-form">
-      <small style="letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">PiSigma</small>
+      <small style="letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">OpenDesk Auth</small>
       <h1>Operator console</h1>
       <p class="lede">Sign in with a platform-admin account to manage users, grants, and audit events.</p>
       <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required /></div>
@@ -175,7 +175,7 @@
 
   <div id="app" class="shell hidden">
     <aside>
-      <div class="brand"><small>PiSigma Auth</small><strong>Console</strong></div>
+      <div class="brand"><small>OpenDesk Auth</small><strong>Console</strong></div>
       <nav>
         <button type="button" data-view="overview" aria-current="page">Overview</button>
         <button type="button" data-view="users">Users</button>
@@ -264,7 +264,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    const KEY = "pisigma_admin_token";
+    const KEY = "opendeskauth_admin_token";
     const state = { token: sessionStorage.getItem(KEY) || "", usersOff: 0, auditOff: 0, limit: 20, users: [], events: [] };
 
     const $ = (id) => document.getElementById(id);

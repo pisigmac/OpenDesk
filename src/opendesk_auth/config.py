@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     jwt_public_key: str = ""
     jwt_private_key_file: str = ""
     jwt_public_key_file: str = ""
-    jwt_kid: str = "pisigma-auth-1"
+    jwt_kid: str = "opendesk-auth-1"
 
     # OAuth provider credentials — empty means the provider is disabled.
     google_client_id: str = ""

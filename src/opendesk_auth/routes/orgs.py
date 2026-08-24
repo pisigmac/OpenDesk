@@ -5,10 +5,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from pisigma_auth.db import get_db
-from pisigma_auth.models import Membership, Org, User
-from pisigma_auth.routes.auth import current_user
-from pisigma_auth.schemas import AddMemberRequest, CreateOrgRequest, OrgOut
+from opendesk_auth.db import get_db
+from opendesk_auth.models import Membership, Org, User
+from opendesk_auth.routes.auth import current_user
+from opendesk_auth.schemas import AddMemberRequest, CreateOrgRequest, OrgOut
 
 router = APIRouter(prefix="/orgs", tags=["orgs"])
 

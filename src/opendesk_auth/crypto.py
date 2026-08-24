@@ -13,7 +13,7 @@ import bcrypt
 import jwt
 from cryptography.hazmat.primitives import serialization
 
-from pisigma_auth.config import Settings, get_settings
+from opendesk_auth.config import Settings, get_settings
 
 
 def hash_password(password: str) -> str:
@@ -100,7 +100,7 @@ def issue_access_token(
         "workspace_id": workspace_id,
         # Always include the Auth service itself as an audience so Auth endpoints can
         # verify tokens locally without depending on product-specific audiences.
-        "aud": ["pisigma-auth", *audiences],
+        "aud": ["opendesk-auth", *audiences],
         "roles": roles,
         "iss": settings.issuer,
         "iat": int(now.timestamp()),

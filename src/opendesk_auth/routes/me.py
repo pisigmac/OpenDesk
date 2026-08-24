@@ -5,11 +5,11 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from pisigma_auth.db import get_db
-from pisigma_auth.middleware import get_request_context
-from pisigma_auth.models import User
-from pisigma_auth.routes.auth import current_user
-from pisigma_auth.services import delete_user_data, emit_audit, export_user_data
+from opendesk_auth.db import get_db
+from opendesk_auth.middleware import get_request_context
+from opendesk_auth.models import User
+from opendesk_auth.routes.auth import current_user
+from opendesk_auth.services import delete_user_data, emit_audit, export_user_data
 
 router = APIRouter(prefix="/me", tags=["me"])
 

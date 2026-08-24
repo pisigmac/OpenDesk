@@ -8,7 +8,7 @@ import jwt
 import pytest
 from fastapi.testclient import TestClient
 
-os.environ["AUTH_DATABASE_URL"] = "sqlite+pysqlite:////tmp/pisigma_auth_test.db"
+os.environ["AUTH_DATABASE_URL"] = "sqlite+pysqlite:////tmp/opendesk_auth_test.db"
 os.environ["AUTH_ISSUER"] = "https://auth.test.local"
 
 
@@ -44,10 +44,10 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setenv("AUTH_JWT_PRIVATE_KEY", priv_pem)
     monkeypatch.setenv("AUTH_JWT_PUBLIC_KEY", pub_pem)
 
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
-    from pisigma_auth.db import init_db, reset_engine
-    from pisigma_auth.app import create_app
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
+    from opendesk_auth.db import init_db, reset_engine
+    from opendesk_auth.app import create_app
 
     get_settings.cache_clear()
     _ensure_keys.cache_clear()
@@ -84,7 +84,7 @@ def test_register_login_me_jwks(client: TestClient):
     assert keys[0]["kty"] == "RSA"
     assert keys[0]["kid"]
 
-    from pisigma_auth.crypto import get_key_material
+    from opendesk_auth.crypto import get_key_material
 
     _, pub, _ = get_key_material()
     claims = jwt.decode(
@@ -158,7 +158,7 @@ def test_oauth_unconfigured(client: TestClient):
 def test_introspect(client: TestClient, monkeypatch):
     # Configure introspection API key
     monkeypatch.setenv("AUTH_INTROSPECTION_API_KEY", "test-introspect-key")
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
     get_settings.cache_clear()
 
     tokens = client.post(
@@ -186,10 +186,10 @@ def test_introspect(client: TestClient, monkeypatch):
 
 def test_no_product_coupling_in_defaults(client: TestClient, monkeypatch, tmp_path):
     """With empty AUTH_DEFAULT_AUDIENCES, signup creates no product grants."""
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
-    from pisigma_auth.db import init_db, reset_engine
-    from pisigma_auth.app import create_app
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
+    from opendesk_auth.db import init_db, reset_engine
+    from opendesk_auth.app import create_app
 
     monkeypatch.setenv("AUTH_DATABASE_URL", f"sqlite+pysqlite:///{tmp_path / 'bare.db'}")
     monkeypatch.setenv("AUTH_DEFAULT_AUDIENCES", "")
@@ -211,7 +211,7 @@ def test_no_product_coupling_in_defaults(client: TestClient, monkeypatch, tmp_pa
 
 
 def test_email_verification_token_model(client):
-    from pisigma_auth.models import EmailVerificationToken
+    from opendesk_auth.models import EmailVerificationToken
 
     assert EmailVerificationToken.__tablename__ == "email_verification_tokens"
 
@@ -221,12 +221,12 @@ def test_email_verification_token_model(client):
 # ---------------------------------------------------------------------------
 
 def test_password_reset_token_model(client):
-    from pisigma_auth.models import PasswordResetToken
+    from opendesk_auth.models import PasswordResetToken
     assert PasswordResetToken.__tablename__ == "password_reset_tokens"
 
 
 def test_audit_log_event_model(client):
-    from pisigma_auth.models import AuditLogEvent
+    from opendesk_auth.models import AuditLogEvent
     assert AuditLogEvent.__tablename__ == "audit_log_events"
 
 
@@ -235,15 +235,15 @@ def test_audit_log_event_model(client):
 # ---------------------------------------------------------------------------
 
 def test_generate_urlsafe_token():
-    from pisigma_auth.crypto import generate_urlsafe_token, hash_token
+    from opendesk_auth.crypto import generate_urlsafe_token, hash_token
     token = generate_urlsafe_token()
     assert len(token) >= 48
     assert hash_token(token) != token
 
 
 def test_ensure_keys_fails_when_not_configured(monkeypatch):
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
     monkeypatch.delenv("AUTH_JWT_PRIVATE_KEY", raising=False)
     monkeypatch.delenv("AUTH_JWT_PUBLIC_KEY", raising=False)
     monkeypatch.setenv("AUTH_JWT_PRIVATE_KEY_FILE", "")
@@ -263,7 +263,7 @@ def test_ensure_keys_fails_when_not_configured(monkeypatch):
 # ---------------------------------------------------------------------------
 
 def test_new_schemas_exist():
-    from pisigma_auth.schemas import (
+    from opendesk_auth.schemas import (
         AuditLogQueryParams,
         ForgotPasswordRequest,
         ResetPasswordRequest,
@@ -280,14 +280,14 @@ def test_new_schemas_exist():
 # ---------------------------------------------------------------------------
 
 def test_mail_client_builds_verification_payload():
-    from pisigma_auth.mail_client import build_verification_email
+    from opendesk_auth.mail_client import build_verification_email
     payload = build_verification_email("user@example.com", "verify_abc123")
     assert payload["to"] == "user@example.com"
     assert "verify_abc123" in payload["html"]
 
 
 def test_mail_client_builds_reset_payload():
-    from pisigma_auth.mail_client import build_password_reset_email
+    from opendesk_auth.mail_client import build_password_reset_email
     payload = build_password_reset_email("user@example.com", "reset_xyz")
     assert payload["to"] == "user@example.com"
     assert "reset_xyz" in payload["html"]
@@ -298,13 +298,13 @@ def test_mail_client_builds_reset_payload():
 # ---------------------------------------------------------------------------
 
 def test_verification_token_lifecycle(client):
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import User
-    from pisigma_auth.services import create_verification_token, verify_email_token
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import User
+    from opendesk_auth.services import create_verification_token, verify_email_token
 
     db = next(get_db())
     # Create user directly via service
-    from pisigma_auth.services import create_user_with_password
+    from opendesk_auth.services import create_user_with_password
     user = create_user_with_password(db, email="verifytest@example.com", password="password123")
 
     raw = create_verification_token(db, user)
@@ -319,14 +319,14 @@ def test_verification_token_lifecycle(client):
 
 
 def test_password_reset_token_lifecycle(client):
-    from pisigma_auth.db import get_db
-    from pisigma_auth.services import (
+    from opendesk_auth.db import get_db
+    from opendesk_auth.services import (
         consume_password_reset_token,
         create_password_reset_token,
         create_user_with_password,
         reset_user_password,
     )
-    from pisigma_auth.crypto import verify_password
+    from opendesk_auth.crypto import verify_password
 
     db = next(get_db())
     user = create_user_with_password(db, email="resettest@example.com", password="old_pass123")
@@ -349,8 +349,8 @@ def test_password_reset_token_lifecycle(client):
 # ---------------------------------------------------------------------------
 
 def test_rate_limiter_allows_and_blocks():
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.rate_limit import RateLimiter
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.rate_limit import RateLimiter
     settings = get_settings()
     limiter = RateLimiter(settings)
     for _ in range(settings.rate_limit_login):
@@ -367,7 +367,7 @@ def test_rate_limiter_allows_and_blocks():
 def test_register_sends_verification_email(client, monkeypatch):
     sent = []
     monkeypatch.setattr(
-        "pisigma_auth.routes.auth.send_mail",
+        "opendesk_auth.routes.auth.send_mail",
         lambda payload: sent.append(payload) or {"id": "msg_1", "status": "sent"},
     )
     r = client.post("/v1/auth/register", json={
@@ -380,12 +380,12 @@ def test_register_sends_verification_email(client, monkeypatch):
 
 
 def test_verify_email_endpoint(client, monkeypatch):
-    monkeypatch.setattr("pisigma_auth.routes.auth.send_mail", lambda p: {"id": "x"})
+    monkeypatch.setattr("opendesk_auth.routes.auth.send_mail", lambda p: {"id": "x"})
     client.post("/v1/auth/register", json={"email": "ev2@example.com", "password": "password123"})
 
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import User
-    from pisigma_auth.services import create_verification_token
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import User
+    from opendesk_auth.services import create_verification_token
 
     db = next(get_db())
     user = db.query(User).filter(User.email == "ev2@example.com").one()
@@ -407,7 +407,7 @@ def test_verify_email_endpoint(client, monkeypatch):
 def test_password_reset_flow(client, monkeypatch):
     sent = []
     monkeypatch.setattr(
-        "pisigma_auth.routes.auth.send_mail",
+        "opendesk_auth.routes.auth.send_mail",
         lambda payload: sent.append(payload) or {"id": "msg_1"},
     )
     client.post("/v1/auth/register", json={"email": "reset@example.com", "password": "password123"})
@@ -417,9 +417,9 @@ def test_password_reset_flow(client, monkeypatch):
     assert r.json()["ok"] is True
     assert len(sent) >= 1  # verification + reset emails
 
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import User
-    from pisigma_auth.services import create_password_reset_token
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import User
+    from opendesk_auth.services import create_password_reset_token
 
     db = next(get_db())
     user = db.query(User).filter(User.email == "reset@example.com").one()
@@ -463,8 +463,8 @@ def test_register_rate_limit(client):
 # ---------------------------------------------------------------------------
 
 def test_decode_access_token_supports_audience_param(client):
-    from pisigma_auth.crypto import decode_access_token, issue_access_token
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.crypto import decode_access_token, issue_access_token
+    from opendesk_auth.config import get_settings
     settings = get_settings()
     token = issue_access_token(
         sub="u1", email="a@b.com", org_id=None, workspace_id=None,
@@ -498,8 +498,8 @@ def test_custom_request_id_is_echoed(client):
 # ---------------------------------------------------------------------------
 
 def test_login_emits_audit_event(client):
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import AuditLogEvent
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import AuditLogEvent
 
     client.post("/v1/auth/register", json={"email": "audtest@example.com", "password": "password123"})
     client.post("/v1/auth/login", json={"email": "audtest@example.com", "password": "password123"})
@@ -511,8 +511,8 @@ def test_login_emits_audit_event(client):
 
 
 def test_register_emits_audit_event(client):
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import AuditLogEvent
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import AuditLogEvent
 
     client.post("/v1/auth/register", json={"email": "audreg@example.com", "password": "password123"})
 
@@ -609,7 +609,7 @@ def test_introspect_requires_auth_key(client):
 
 def test_introspect_with_valid_key(client, monkeypatch):
     monkeypatch.setenv("AUTH_INTROSPECTION_API_KEY", "secret-key")
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
     get_settings.cache_clear()
 
     tokens = client.post("/v1/auth/register", json={
@@ -633,24 +633,24 @@ def test_introspect_with_valid_key(client, monkeypatch):
 
 
 def test_access_token_includes_auth_service_audience(client):
-    """Tokens issued by Auth must include 'pisigma-auth' so Auth endpoints can verify audience."""
-    from pisigma_auth.crypto import decode_access_token
+    """Tokens issued by Auth must include 'opendesk-auth' so Auth endpoints can verify audience."""
+    from opendesk_auth.crypto import decode_access_token
 
     tokens = client.post(
         "/v1/auth/register",
         json={"email": "audauth@example.com", "password": "password123"},
     ).json()
-    claims = decode_access_token(tokens["access_token"], audience="pisigma-auth")
-    assert "pisigma-auth" in claims["aud"]
+    claims = decode_access_token(tokens["access_token"], audience="opendesk-auth")
+    assert "opendesk-auth" in claims["aud"]
 
 
 def test_me_rejects_token_without_auth_audience(client):
     """A token issued for a product audience only must not work on Auth endpoints."""
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import issue_access_token
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import issue_access_token
 
     settings = get_settings()
-    # Issue a token that does NOT include 'pisigma-auth'
+    # Issue a token that does NOT include 'opendesk-auth'
     bad_token = issue_access_token(
         sub="u1",
         email="a@b.com",
@@ -680,7 +680,7 @@ def test_refresh_rate_limit(client):
 
 
 def test_rate_limiter_uses_x_forwarded_for_when_proxy_trusted(client, monkeypatch):
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
 
     get_settings.cache_clear()
     monkeypatch.setenv("AUTH_RATE_LIMIT_TRUST_PROXY", "true")
@@ -711,7 +711,7 @@ def test_rate_limiter_uses_x_forwarded_for_when_proxy_trusted(client, monkeypatc
 
 
 def test_rate_limiter_ignores_x_forwarded_for_when_proxy_untrusted(client, monkeypatch):
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
 
     get_settings.cache_clear()
     monkeypatch.setenv("AUTH_RATE_LIMIT_TRUST_PROXY", "false")
@@ -735,14 +735,14 @@ def test_rate_limiter_ignores_x_forwarded_for_when_proxy_untrusted(client, monke
 
 
 def test_register_logs_mail_failure(client, monkeypatch, caplog):
-    from pisigma_auth.routes import auth
+    from opendesk_auth.routes import auth
 
     def _raise(*args, **kwargs):
         raise RuntimeError("mail down")
 
     monkeypatch.setattr(auth, "send_mail", _raise)
 
-    with caplog.at_level("WARNING", logger="pisigma_auth.auth"):
+    with caplog.at_level("WARNING", logger="opendesk_auth.auth"):
         r = client.post(
             "/v1/auth/register",
             json={"email": "mailfail@example.com", "password": "password123"},
@@ -760,9 +760,9 @@ def test_register_logs_mail_failure(client, monkeypatch, caplog):
 
 def _verify_email_for_test(client, email: str) -> None:
     """Create and consume a verification token for the given user (test helper)."""
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import User
-    from pisigma_auth.services import create_verification_token
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import User
+    from opendesk_auth.services import create_verification_token
 
     db = next(get_db())
     user = db.query(User).filter(User.email == email).one()
@@ -773,7 +773,7 @@ def _verify_email_for_test(client, email: str) -> None:
 
 def test_login_blocked_without_email_verification(client, monkeypatch):
     monkeypatch.setenv("AUTH_REQUIRE_EMAIL_VERIFICATION", "true")
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
 
     get_settings.cache_clear()
 
@@ -790,7 +790,7 @@ def test_login_blocked_without_email_verification(client, monkeypatch):
 
 def test_login_succeeds_after_email_verification(client, monkeypatch):
     monkeypatch.setenv("AUTH_REQUIRE_EMAIL_VERIFICATION", "true")
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
 
     get_settings.cache_clear()
 
@@ -809,7 +809,7 @@ def test_login_succeeds_after_email_verification(client, monkeypatch):
 def test_account_lockout_after_failed_logins(client, monkeypatch):
     monkeypatch.setenv("AUTH_ACCOUNT_LOCKOUT_MAX_ATTEMPTS", "3")
     monkeypatch.setenv("AUTH_ACCOUNT_LOCKOUT_DURATION_SECONDS", "60")
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
 
     get_settings.cache_clear()
 
@@ -837,7 +837,7 @@ def test_account_lockout_after_failed_logins(client, monkeypatch):
 def test_successful_login_resets_failed_attempts(client, monkeypatch):
     monkeypatch.setenv("AUTH_ACCOUNT_LOCKOUT_MAX_ATTEMPTS", "3")
     monkeypatch.setenv("AUTH_ACCOUNT_LOCKOUT_DURATION_SECONDS", "60")
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
 
     get_settings.cache_clear()
 
@@ -878,7 +878,7 @@ def test_successful_login_resets_failed_attempts(client, monkeypatch):
 def test_account_lockout_expires(client, monkeypatch):
     monkeypatch.setenv("AUTH_ACCOUNT_LOCKOUT_MAX_ATTEMPTS", "2")
     monkeypatch.setenv("AUTH_ACCOUNT_LOCKOUT_DURATION_SECONDS", "1")
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
 
     get_settings.cache_clear()
 
@@ -957,8 +957,8 @@ def test_operator_grant_action_appears_in_audit_log(client):
     )
     assert r.status_code == 200
 
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import AuditLogEvent
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import AuditLogEvent
 
     db = next(get_db())
     event = db.query(AuditLogEvent).filter(AuditLogEvent.action == "admin.set_grant").first()
@@ -1034,7 +1034,7 @@ def test_gdpr_export_contains_expected_data(client):
 
 def test_config_rejects_missing_required_values(monkeypatch):
     """The service fails closed when required deployment values are missing."""
-    from pisigma_auth.config import Settings, get_settings
+    from opendesk_auth.config import Settings, get_settings
 
     get_settings.cache_clear()
     # Set to empty strings so they override any .env file values.
@@ -1054,10 +1054,10 @@ def test_config_rejects_missing_required_values(monkeypatch):
 
 def test_registration_closed_by_default(client, monkeypatch, tmp_path):
     """With open_registration=False and no bootstrap token, registration is rejected."""
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
-    from pisigma_auth.db import init_db, reset_engine
-    from pisigma_auth.app import create_app
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
+    from opendesk_auth.db import init_db, reset_engine
+    from opendesk_auth.app import create_app
 
     monkeypatch.setenv("AUTH_DATABASE_URL", f"sqlite+pysqlite:///{tmp_path / 'closed.db'}")
     monkeypatch.setenv("AUTH_OPEN_REGISTRATION", "false")
@@ -1082,10 +1082,10 @@ def test_registration_closed_by_default(client, monkeypatch, tmp_path):
 
 def test_first_registration_requires_bootstrap_token(client, monkeypatch, tmp_path):
     """Closed registration allows the first user only with a valid bootstrap token."""
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
-    from pisigma_auth.db import init_db, reset_engine
-    from pisigma_auth.app import create_app
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
+    from opendesk_auth.db import init_db, reset_engine
+    from opendesk_auth.app import create_app
 
     monkeypatch.setenv("AUTH_DATABASE_URL", f"sqlite+pysqlite:///{tmp_path / 'bootstrap.db'}")
     monkeypatch.setenv("AUTH_OPEN_REGISTRATION", "false")
@@ -1137,10 +1137,10 @@ def test_first_registration_requires_bootstrap_token(client, monkeypatch, tmp_pa
 
 def test_registration_does_not_issue_tokens_when_verification_required(client, monkeypatch, tmp_path):
     """When require_email_verification is true, signup returns no product-scoped tokens."""
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
-    from pisigma_auth.db import init_db, reset_engine
-    from pisigma_auth.app import create_app
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
+    from opendesk_auth.db import init_db, reset_engine
+    from opendesk_auth.app import create_app
 
     monkeypatch.setenv("AUTH_DATABASE_URL", f"sqlite+pysqlite:///{tmp_path / 'verify.db'}")
     monkeypatch.setenv("AUTH_REQUIRE_EMAIL_VERIFICATION", "true")
@@ -1172,11 +1172,11 @@ def test_registration_does_not_issue_tokens_when_verification_required(client, m
 
 def test_oauth_cannot_take_over_unverified_password_account(client, monkeypatch, tmp_path):
     """OAuth sign-in with the same email as an unverified password account is rejected."""
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
-    from pisigma_auth.db import init_db, reset_engine
-    from pisigma_auth.app import create_app
-    from pisigma_auth.services import find_or_create_oauth_user
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
+    from opendesk_auth.db import init_db, reset_engine
+    from opendesk_auth.app import create_app
+    from opendesk_auth.services import find_or_create_oauth_user
 
     monkeypatch.setenv("AUTH_DATABASE_URL", f"sqlite+pysqlite:///{tmp_path / 'oauth.db'}")
     monkeypatch.setenv("AUTH_OPEN_REGISTRATION", "true")
@@ -1192,8 +1192,8 @@ def test_oauth_cannot_take_over_unverified_password_account(client, monkeypatch,
             "password": "password123",
         })
 
-    from pisigma_auth.db import get_db
-    from pisigma_auth.models import User
+    from opendesk_auth.db import get_db
+    from opendesk_auth.models import User
 
     db = next(get_db())
     password_user = db.query(User).filter(User.email == "shared@example.com").one()
@@ -1244,7 +1244,7 @@ def test_refresh_blocked_for_suspended_user(client):
 
 def test_verify_email_rate_limit(client, monkeypatch):
     """The verify-email endpoint is rate-limited per IP."""
-    monkeypatch.setattr("pisigma_auth.routes.auth.send_mail", lambda p: {"id": "x"})
+    monkeypatch.setattr("opendesk_auth.routes.auth.send_mail", lambda p: {"id": "x"})
     client.post("/v1/auth/register", json={
         "email": "verifyrl@example.com",
         "password": "password123",
@@ -1273,7 +1273,7 @@ def test_reset_password_rate_limit(client):
 def test_admin_console_served(client):
     r = client.get("/admin/console")
     assert r.status_code == 200
-    assert b"PiSigma Auth" in r.content
+    assert b"OpenDesk Auth" in r.content
 
 
 def test_health_returns_503_when_keys_missing(tmp_path, monkeypatch):
@@ -1285,10 +1285,10 @@ def test_health_returns_503_when_keys_missing(tmp_path, monkeypatch):
     monkeypatch.setenv("AUTH_JWT_PUBLIC_KEY", "")
     monkeypatch.setenv("AUTH_JWT_PRIVATE_KEY_FILE", "")
     monkeypatch.setenv("AUTH_JWT_PUBLIC_KEY_FILE", "")
-    from pisigma_auth.config import get_settings
-    from pisigma_auth.crypto import _ensure_keys
-    from pisigma_auth.db import init_db, reset_engine
-    from pisigma_auth.app import create_app
+    from opendesk_auth.config import get_settings
+    from opendesk_auth.crypto import _ensure_keys
+    from opendesk_auth.db import init_db, reset_engine
+    from opendesk_auth.app import create_app
     from fastapi.testclient import TestClient
 
     get_settings.cache_clear()
@@ -1305,7 +1305,7 @@ def test_health_returns_503_when_keys_missing(tmp_path, monkeypatch):
 
 
 def test_email_change_requires_reverification(client, monkeypatch):
-    monkeypatch.setattr("pisigma_auth.routes.auth.send_mail", lambda p: {"id": "x"})
+    monkeypatch.setattr("opendesk_auth.routes.auth.send_mail", lambda p: {"id": "x"})
     tokens = client.post("/v1/auth/register", json={
         "email": "oldaddr@example.com",
         "password": "password123",
@@ -1317,7 +1317,7 @@ def test_email_change_requires_reverification(client, monkeypatch):
     )
     assert r.status_code == 200
     assert r.json()["email"] == "newaddr@example.com"
-    from pisigma_auth.config import get_settings
+    from opendesk_auth.config import get_settings
     monkeypatch.setenv("AUTH_REQUIRE_EMAIL_VERIFICATION", "true")
     get_settings.cache_clear()
     denied = client.post("/v1/auth/login", json={"email": "newaddr@example.com", "password": "password123"})
@@ -1334,7 +1334,7 @@ def test_password_reset_revokes_refresh_tokens(client, monkeypatch):
         captured["html"] = payload.get("html", "")
         return {"id": "x"}
 
-    monkeypatch.setattr("pisigma_auth.routes.auth.send_mail", fake_send)
+    monkeypatch.setattr("opendesk_auth.routes.auth.send_mail", fake_send)
     tokens = client.post("/v1/auth/register", json={
         "email": "resetrev@example.com",
         "password": "password123",
@@ -1390,8 +1390,8 @@ def test_metrics_counts_register(client):
 
 
 def test_audit_is_append_only_and_hashed(client):
-    from pisigma_auth.db import get_engine
-    from pisigma_auth.models import AuditLogEvent
+    from opendesk_auth.db import get_engine
+    from opendesk_auth.models import AuditLogEvent
     from sqlalchemy.orm import Session
 
     admin = client.post("/v1/auth/register", json={"email": "audhash@example.com", "password": "password123"}).json()

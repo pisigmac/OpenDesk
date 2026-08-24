@@ -30,7 +30,7 @@ End users never install anything. Operators open https://auth.plexapps.com/admin
 
 1. Decide the origin (pick one)
 
-Cloudflare will not execute pisigma-auth for you. You need a machine that can run Docker and keep port 8090 (or 443) reachable only by Cloudflare.
+Cloudflare will not execute opendesk-auth for you. You need a machine that can run Docker and keep port 8090 (or 443) reachable only by Cloudflare.
 
 Practical options:
 
@@ -107,7 +107,7 @@ Backups: enable daily snapshots before the first real user.
 
 5. Run Auth on the origin
 
-On the VPS, from a checkout of Auth/ (or a built image you pushed to GHCR/Docker Hub as yourorg/pisigma-auth:1.0.0):
+On the VPS, from a checkout of Auth/ (or a built image you pushed to GHCR/Docker Hub as yourorg/opendesk-auth:1.0.0):
 
 1. Copy PEMs to the host, mode 600.
 2. Set environment (example values — replace):
@@ -119,7 +119,7 @@ AUTH_PORT=8090
 
 AUTH_JWT_PRIVATE_KEY_FILE=/run/secrets/auth_private.pem
 AUTH_JWT_PUBLIC_KEY_FILE=/run/secrets/auth_public.pem
-AUTH_JWT_KID=pisigma-auth-1
+AUTH_JWT_KID=opendesk-auth-1
 
 AUTH_OPEN_REGISTRATION=false
 AUTH_BOOTSTRAP_TOKEN=<the hex you generated>
@@ -158,7 +158,7 @@ docker compose exec auth python3 /app/migrations/run_migrations.py
    Same body. If this fails, DNS/SSL/Tunnel is wrong, not Auth.
 
 7. Check JWKS: curl -sS https://auth.plexapps.com/.well-known/jwks.json
-   You should see one RSA key, kid = pisigma-auth-1.
+   You should see one RSA key, kid = opendesk-auth-1.
 
 ───
 
@@ -210,13 +210,13 @@ AUTH_ISSUER=https://auth.plexapps.com
 
 4. If you use the TS client:
 
-const auth = new PisigmaAuth({ baseUrl: 'https://auth.plexapps.com' })
+const auth = new OpenDesk Auth({ baseUrl: 'https://auth.plexapps.com' })
 
 That is a config change in the product. They do not clone Auth. They do not download a new zip when you ship Auth 1.1.
 
 5. Grant the product audience (admin console → user drawer → grant, or POST /v1/admin/grants) so JWT aud / roles include that product.
 
-6. Other PiSigma Workers (Mail, Billing, …) stay on their own *.plexapps.com hostnames. Only Auth lives at auth..
+6. Other OpenDesk Auth Workers (Mail, Billing, …) stay on their own *.plexapps.com hostnames. Only Auth lives at auth..
 
 ───
 
@@ -224,7 +224,7 @@ That is a config change in the product. They do not clone Auth. They do not down
 
 You ship a new Auth version (bugfix, new admin UI, new route):
 
-1. Build/tag image pisigma-auth:1.1.0.
+1. Build/tag image opendesk-auth:1.1.0.
 2. Run new migrations on the same Postgres.
 3. Replace the container. Same hostname, same PEMs, same AUTH_ISSUER.
 4. Every app already pointing at https://auth.plexapps.com gets the new API and /admin/console on next request. No product deploy required if /v1 did not break.
@@ -265,7 +265,7 @@ Browser / SPA / other APIs
 Cloudflare (plexapps zone)  TLS, WAF, optional Tunnel
         │
         ▼
-Docker: pisigma-auth :8090
+Docker: opendesk-auth :8090
         │
         ▼
 Postgres (users, refresh hashes, audit)

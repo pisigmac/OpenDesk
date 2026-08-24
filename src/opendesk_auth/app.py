@@ -9,14 +9,14 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 
-from pisigma_auth import __version__
-from pisigma_auth.config import get_settings
-from pisigma_auth.db import check_db_health, get_db, init_db
-from pisigma_auth.middleware import RequestContextMiddleware, get_request_context
-from pisigma_auth.rate_limit import RateLimiter
-from pisigma_auth.routes import admin_router, auth_router, jwks_router, me_router, oauth_router, orgs_router
+from opendesk_auth import __version__
+from opendesk_auth.config import get_settings
+from opendesk_auth.db import check_db_health, get_db, init_db
+from opendesk_auth.middleware import RequestContextMiddleware, get_request_context
+from opendesk_auth.rate_limit import RateLimiter
+from opendesk_auth.routes import admin_router, auth_router, jwks_router, me_router, oauth_router, orgs_router
 
-logger = logging.getLogger("pisigma_auth")
+logger = logging.getLogger("opendesk_auth")
 
 
 @asynccontextmanager
@@ -32,9 +32,9 @@ async def lifespan(_: FastAPI):
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
-        title="PiSigma Auth",
+        title="OpenDesk Auth",
         version=__version__,
-        description="Shared identity microservice for PiSigma products (JWKS + OAuth + orgs).",
+        description="Shared identity microservice for OpenDesk Auth products (JWKS + OAuth + orgs).",
         lifespan=lifespan,
     )
     app.state.rate_limiter = RateLimiter(settings)
@@ -84,7 +84,7 @@ def create_app() -> FastAPI:
     # ------------------------------------------------------------------
     # Health — deep check (DB + key availability)
     # ------------------------------------------------------------------
-    from pisigma_auth.crypto import get_key_material
+    from opendesk_auth.crypto import get_key_material
 
     @app.get("/health")
     def health() -> JSONResponse:
@@ -98,7 +98,7 @@ def create_app() -> FastAPI:
         ready = db_ok and keys_ok
         body = {
             "status": "ok" if ready else "degraded",
-            "service": "pisigma-auth",
+            "service": "opendesk-auth",
             "version": __version__,
             "checks": {
                 "database": "ok" if db_ok else "error",
@@ -109,9 +109,9 @@ def create_app() -> FastAPI:
 
     @app.get("/metrics")
     def metrics() -> dict:
-        from pisigma_auth.metrics import snapshot
+        from opendesk_auth.metrics import snapshot
 
-        return {"service": "pisigma-auth", "counters": snapshot()}
+        return {"service": "opendesk-auth", "counters": snapshot()}
 
     @app.get("/admin/console", include_in_schema=False)
     def admin_console() -> FileResponse:

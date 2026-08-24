@@ -7,8 +7,8 @@ from collections.abc import Generator
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from pisigma_auth.config import get_settings
-from pisigma_auth.models import Base
+from opendesk_auth.config import get_settings
+from opendesk_auth.models import Base
 
 _engine = None
 _SessionLocal = None

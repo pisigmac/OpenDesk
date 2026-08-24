@@ -8,14 +8,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
-from pisigma_auth.db import get_db
-from pisigma_auth.middleware import get_request_context
-from pisigma_auth.models import AuditLogEvent, ProductGrant, User
-from pisigma_auth.routes.auth import current_user
-from pisigma_auth.schemas import GrantRequest, SetUserActiveRequest, UserOut
-from pisigma_auth.services import emit_audit, set_user_active, user_to_out
+from opendesk_auth.db import get_db
+from opendesk_auth.middleware import get_request_context
+from opendesk_auth.models import AuditLogEvent, ProductGrant, User
+from opendesk_auth.routes.auth import current_user
+from opendesk_auth.schemas import GrantRequest, SetUserActiveRequest, UserOut
+from opendesk_auth.services import emit_audit, set_user_active, user_to_out
 
-logger = logging.getLogger("pisigma_auth.admin")
+logger = logging.getLogger("opendesk_auth.admin")
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 

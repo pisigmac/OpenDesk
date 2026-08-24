@@ -1,7 +1,7 @@
 # Auth — Features & Gaps
 
 > **Audit date:** 2026-08-16 · **Updated:** same day — P0 items closed in code; admin console shipped.  
-> **Scope:** PiSigma Auth (`src/pisigma_auth`, `client.ts`, tests, migrations, deploy files).  
+> **Scope:** OpenDesk Auth (`src/opendesk_auth`, `client.ts`, tests, migrations, deploy files).  
 > **Method:** Full read of the live service. A separate industry-IAM comparison was used only to judge table-stakes; that reference tree is not part of this repo.  
 > **Supersedes:** the 2026-08-13 `auth-hardening` checklist in the previous version of this file. Many items marked pending then are **implemented**.
 
@@ -11,7 +11,7 @@ Read with `AGENTS.md` (invariants) and `code_map.md` (file map).
 
 ## 1. Product position
 
-Auth is a **small, product-agnostic identity API** for PiSigma. It issues RS256 JWTs that other services validate locally via JWKS. Product access is a grant (`audience` + role), not a hard-coded product list.
+Auth is a **small, product-agnostic identity API** for OpenDesk Auth. It issues RS256 JWTs that other services validate locally via JWKS. Product access is a grant (`audience` + role), not a hard-coded product list.
 
 It is **not** a full OIDC authorization server (no discovery document, no authorize/token/userinfo, no client registry, no PKCE). That is an explicit architectural shape, not an accidental stub — unless a later decision adds a standard OIDC subset.
 
@@ -26,7 +26,7 @@ It is **not** a full OIDC authorization server (no discovery document, no author
 | Password reset (enum-safe) | forgot/reset | Mail; 1h token |
 | Change password / PATCH profile | `/v1/auth/me*` | Email change does not re-verify |
 | Google + GitHub OAuth | `oauth.py` | Fragment handoff; no takeover of unverified emails |
-| RS256 JWT + JWKS | `crypto.py`, `jwks.py` | Fail-closed keys; `aud` always includes `pisigma-auth` |
+| RS256 JWT + JWKS | `crypto.py`, `jwks.py` | Fail-closed keys; `aud` always includes `opendesk-auth` |
 | Refresh rotation + revoke | `services.rotate_refresh` | Suspended users cannot refresh |
 | Account lockout | `authenticate_password` | 5 failures / 15 min default |
 | Per-IP rate limits | `rate_limit.py` | In-memory, single process |
@@ -45,7 +45,7 @@ It is **not** a full OIDC authorization server (no discovery document, no author
 | TS SDK | `client.ts` | Incomplete vs newest routes |
 | Tests | 56 in `test_auth.py` | Strong on hardening gates |
 
-First-class PiSigma advantage: `aud` + `roles.<product>` as the product-access model, plus dedicated GDPR export/delete APIs.
+First-class OpenDesk Auth advantage: `aud` + `roles.<product>` as the product-access model, plus dedicated GDPR export/delete APIs.
 
 ---
 
@@ -147,7 +147,7 @@ Register/login/verify/reset, Google/GitHub, local JWT validation, org membership
 1. **P0** — On email change: require current password or re-login, set `email_verified_at=None`, send verify, block login until done.
 2. **P0** — On password reset/change: revoke all refresh tokens for that user (except optionally the current one).
 3. **P1** — Publish `/.well-known/openid-configuration` **or** document that Auth will never be OIDC and ship a first-party SPA helper.
-4. **P1** — Complete `PisigmaAuth` (profile, password, sessions, orgs, suspend).
+4. **P1** — Complete `OpenDesk Auth` (profile, password, sessions, orgs, suspend).
 5. **P1** — Session metadata (IP, UA, created-from) + revoke-all.
 6. **P1** — MFA enrollment (implement in Auth, or call a real `MFA/` — do not invent both).
 7. **P2** — Microsoft/Apple OAuth; PKCE on all social starts.

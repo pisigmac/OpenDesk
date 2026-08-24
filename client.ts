@@ -1,8 +1,8 @@
 /**
- * Typed client for PiSigma Auth Service (FastAPI / Python backend).
+ * Typed client for OpenDesk Auth Service (FastAPI / Python backend).
  *
  * Usage:
- *   const auth = new PisigmaAuth({ baseUrl: 'http://127.0.0.1:8090' })
+ *   const auth = new OpenDeskAuth({ baseUrl: 'http://127.0.0.1:8090' })
  *   const result = await auth.login({ email: 'user@example.com', password: 'secret' })
  */
 
@@ -78,7 +78,7 @@ export type AuditLogResponse = {
   events: Array<Record<string, unknown>>
 }
 
-export class PisigmaAuth {
+export class OpenDeskAuth {
   private baseUrl: string
   private apiKey?: string
   private fetchFn: typeof fetch
@@ -255,3 +255,6 @@ export class PisigmaAuth {
     return this.request('GET', `/v1/admin/audit${query}`, undefined, token)
   }
 }
+
+export { OpenDeskAuth as DeskAuth, OpenDeskAuth as PisigmaAuth }
+
