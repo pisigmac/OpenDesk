@@ -9,8 +9,24 @@ venv/
 *.egg-info/
 *.egg
 
-# Local Dev Keys & Databases
+# Local Dev Keys, Certificates & Security Assets
 *.pem
+*.crt
+*.cer
+*.key
+*.pub
+*.priv
+*.p12
+*.pfx
+*.der
+*.csr
+*.kdb
+*.id_rsa
+*.id_ed25519
+private.pem
+public.pem
+
+# Databases
 *.db
 *.sqlite
 *.sqlite3
