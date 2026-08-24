@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PiSigma Auth — Operator console</title>
+  <style>
+    :root {
+      --ink: #14181f;
+      --paper: #f4efe6;
+      --panel: #fffdf8;
+      --line: #d9d0c3;
+      --muted: #6b645a;
+      --accent: #b45309;
+      --accent-ink: #fff7ed;
+      --ok: #166534;
+      --ok-bg: #dcfce7;
+      --warn: #92400e;
+      --warn-bg: #fef3c7;
+      --bad: #991b1b;
+      --bad-bg: #fee2e2;
+      --shadow: 0 18px 40px rgba(20, 24, 31, 0.08);
+      --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+      --sans: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+      --ui: "Segoe UI", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(1200px 400px at 10% -10%, #fde8c8 0%, transparent 55%),
+        var(--paper);
+      color: var(--ink);
+      font: 15px/1.45 var(--ui);
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: var(--accent); }
+    .hidden { display: none !important; }
+
+    .shell { min-height: 100%; display: grid; grid-template-columns: 240px 1fr; }
+    .brand {
+      padding: 28px 22px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+    .brand small { display: block; color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase; font-size: 11px; }
+    .brand strong { display: block; font-family: var(--sans); font-size: 26px; font-weight: 600; margin-top: 4px; }
+    aside {
+      background: #efe8dc;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+    }
+    nav { padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+    nav button {
+      text-align: left;
+      border: 0;
+      background: transparent;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: var(--ink);
+    }
+    nav button[aria-current="page"] { background: var(--ink); color: var(--paper); }
+    nav button:hover:not([aria-current="page"]) { background: rgba(20,24,31,0.06); }
+    .who {
+      margin-top: auto;
+      padding: 16px 18px 22px;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .who b { display: block; }
+    .who span { color: var(--muted); }
+
+    main { padding: 28px 32px 48px; }
+    h1 { font-family: var(--sans); font-size: 32px; font-weight: 600; margin: 0 0 6px; }
+    .lede { color: var(--muted); margin: 0 0 22px; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .card h3 { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .stat { font-family: var(--sans); font-size: 28px; }
+    .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; margin-bottom: 14px; }
+    .field { display: flex; flex-direction: column; gap: 5px; min-width: 180px; flex: 1; }
+    label { font-size: 12px; color: var(--muted); }
+    input, select {
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 8px;
+      padding: 9px 10px;
+    }
+    .btn {
+      border: 0;
+      background: var(--ink);
+      color: #fff;
+      border-radius: 8px;
+      padding: 9px 14px;
+    }
+    .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    .btn.warn { background: var(--bad); }
+    .btn.ok { background: var(--ok); }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 12px; color: var(--muted); font-weight: 600; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: #faf6ee; }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge.ok { background: var(--ok-bg); color: var(--ok); }
+    .badge.bad { background: var(--bad-bg); color: var(--bad); }
+    .badge.warn { background: var(--warn-bg); color: var(--warn); }
+    .badge.ink { background: #ece7de; color: var(--ink); }
+    code { font-family: var(--mono); font-size: 12px; }
+    .pager { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; color: var(--muted); }
+
+    .login-wrap { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+    .login {
+      width: min(440px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+    }
+    .login h1 { font-size: 34px; }
+    .err { color: var(--bad); min-height: 1.2em; }
+
+    .drawer-bg {
+      position: fixed; inset: 0; background: rgba(20,24,31,0.35);
+      display: flex; justify-content: flex-end;
+    }
+    .drawer {
+      width: min(460px, 100%);
+      background: var(--panel);
+      height: 100%;
+      padding: 24px;
+      overflow: auto;
+      border-left: 1px solid var(--line);
+    }
+    .toast {
+      position: fixed; right: 20px; bottom: 20px;
+      background: var(--ink); color: #fff; padding: 10px 14px; border-radius: 8px;
+    }
+    .modal-bg { position: fixed; inset: 0; background: rgba(20,24,31,0.4); display: grid; place-items: center; }
+    .modal { background: var(--panel); border-radius: 14px; padding: 22px; width: min(420px, 92vw); border: 1px solid var(--line); }
+    @media (max-width: 900px) {
+      .shell { grid-template-columns: 1fr; }
+      aside { display: none; }
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="login-screen" class="login-wrap">
+    <form class="login" id="login-form">
+      <small style="letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">PiSigma</small>
+      <h1>Operator console</h1>
+      <p class="lede">Sign in with a platform-admin account to manage users, grants, and audit events.</p>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required /></div>
+      <div class="field" style="margin-top:12px"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required /></div>
+      <p id="login-err" class="err"></p>
+      <button class="btn" type="submit" style="width:100%;margin-top:8px">Sign in</button>
+    </form>
+  </div>
+
+  <div id="app" class="shell hidden">
+    <aside>
+      <div class="brand"><small>PiSigma Auth</small><strong>Console</strong></div>
+      <nav>
+        <button type="button" data-view="overview" aria-current="page">Overview</button>
+        <button type="button" data-view="users">Users</button>
+        <button type="button" data-view="audit">Audit log</button>
+        <button type="button" data-view="system">System</button>
+      </nav>
+      <div class="who">
+        <b id="who-email">—</b>
+        <span>Platform admin</span>
+        <button class="btn ghost" id="signout" type="button" style="margin-top:10px;width:100%">Sign out</button>
+      </div>
+    </aside>
+    <main>
+      <section id="view-overview">
+        <h1>Overview</h1>
+        <p class="lede">Service health and recent operator activity.</p>
+        <div class="grid">
+          <div class="card"><h3>Service</h3><div class="stat" id="ov-status">—</div></div>
+          <div class="card"><h3>Database</h3><div class="stat" id="ov-db">—</div></div>
+          <div class="card"><h3>JWT keys</h3><div class="stat" id="ov-keys">—</div></div>
+          <div class="card"><h3>Users loaded</h3><div class="stat" id="ov-users">—</div></div>
+        </div>
+        <div class="card">
+          <h3>Recent audit</h3>
+          <table><thead><tr><th>When</th><th>Action</th><th>Actor</th></tr></thead><tbody id="ov-audit"></tbody></table>
+        </div>
+      </section>
+
+      <section id="view-users" class="hidden">
+        <h1>Users</h1>
+        <p class="lede">Search accounts, assign product grants, suspend access.</p>
+        <div class="toolbar">
+          <div class="field"><label>Search</label><input id="user-q" placeholder="email or display name" /></div>
+          <button class="btn" id="user-search" type="button">Search</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Person</th><th>Status</th><th>Admin</th><th>Grants</th></tr></thead>
+            <tbody id="user-rows"></tbody>
+          </table>
+          <div class="pager">
+            <span id="user-meta"></span>
+            <div>
+              <button class="btn ghost" id="user-prev" type="button">Previous</button>
+              <button class="btn ghost" id="user-next" type="button">Next</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-audit" class="hidden">
+        <h1>Audit log</h1>
+        <p class="lede">Append-only events. Integrity hash is shown on each row.</p>
+        <div class="toolbar">
+          <div class="field"><label>Action</label><input id="audit-action" placeholder="user.login" /></div>
+          <div class="field"><label>Actor ID</label><input id="audit-actor" /></div>
+          <div class="field"><label>Resource type</label><input id="audit-rtype" placeholder="user" /></div>
+          <button class="btn" id="audit-load" type="button">Apply filters</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>When</th><th>Action</th><th>Actor</th><th>IP</th><th>Hash</th></tr></thead>
+            <tbody id="audit-rows"></tbody>
+          </table>
+          <div class="pager">
+            <span id="audit-meta"></span>
+            <div>
+              <button class="btn ghost" id="audit-prev" type="button">Previous</button>
+              <button class="btn ghost" id="audit-next" type="button">Next</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-system" class="hidden">
+        <h1>System</h1>
+        <p class="lede">Live health and in-process counters.</p>
+        <div class="card" id="sys-health"></div>
+        <div class="card" style="margin-top:12px" id="sys-metrics"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="drawer-bg" class="drawer-bg hidden"><aside class="drawer" id="drawer"></aside></div>
+  <div id="modal-bg" class="modal-bg hidden"></div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    const KEY = "pisigma_admin_token";
+    const state = { token: sessionStorage.getItem(KEY) || "", usersOff: 0, auditOff: 0, limit: 20, users: [], events: [] };
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+    const when = (iso) => iso ? new Date(iso).toLocaleString() : "—";
+
+    function toast(msg) {
+      const el = $("toast");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.add("hidden"), 2400);
+    }
+
+    async function api(method, path, body) {
+      const res = await fetch(path, {
+        method,
+        headers: { "Content-Type": "application/json", ...(state.token ? { Authorization: "Bearer " + state.token } : {}) },
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.status === 401) { signOut(false); throw new Error(json.error || "Session expired"); }
+      if (!res.ok) throw new Error(json.error || json.detail || res.statusText);
+      return json;
+    }
+
+    function showApp(on) {
+      $("login-screen").classList.toggle("hidden", on);
+      $("app").classList.toggle("hidden", !on);
+    }
+
+    function signOut(clear) {
+      if (clear !== false) sessionStorage.removeItem(KEY);
+      state.token = "";
+      showApp(false);
+    }
+
+    function showView(name) {
+      document.querySelectorAll("nav [data-view]").forEach((b) => b.setAttribute("aria-current", b.dataset.view === name ? "page" : "false"));
+      ["overview", "users", "audit", "system"].forEach((v) => $("view-" + v).classList.toggle("hidden", v !== name));
+      if (name === "overview") loadOverview();
+      if (name === "users") loadUsers();
+      if (name === "audit") loadAudit();
+      if (name === "system") loadSystem();
+    }
+
+    async function loadOverview() {
+      const [health, users, audit] = await Promise.all([
+        fetch("/health").then((r) => r.json()),
+        api("GET", "/v1/admin/users?limit=1"),
+        api("GET", "/v1/admin/audit?limit=8"),
+      ]);
+      $("ov-status").textContent = health.status;
+      $("ov-db").textContent = health.checks?.database || "—";
+      $("ov-keys").textContent = health.checks?.jwt_keys || "—";
+      $("ov-users").textContent = users.total;
+      $("ov-audit").innerHTML = (audit.events || []).map((e) =>
+        `<tr><td>${esc(when(e.occurred_at))}</td><td>${esc(e.action)}</td><td><code>${esc(e.actor_id || "—")}</code></td></tr>`
+      ).join("") || `<tr><td colspan="3" class="muted">No events yet</td></tr>`;
+    }
+
+    async function loadUsers() {
+      const q = $("user-q").value.trim();
+      const qs = new URLSearchParams({ limit: String(state.limit), offset: String(state.usersOff) });
+      if (q) qs.set("q", q);
+      const data = await api("GET", "/v1/admin/users?" + qs);
+      state.users = data.users || [];
+      $("user-meta").textContent = `${data.total} accounts · showing ${state.usersOff + 1}–${state.usersOff + state.users.length || 0}`;
+      $("user-rows").innerHTML = state.users.map((u) => {
+        const grants = (u.grants || []).map((g) => `${g.audience}:${g.role}`).join(" · ") || "—";
+        return `<tr data-user="${esc(u.id)}">
+          <td><b>${esc(u.display_name || u.email)}</b><br><span style="color:var(--muted)">${esc(u.email)}</span><br><code>${esc(u.id)}</code></td>
+          <td><span class="badge ${u.is_active ? "ok" : "bad"}">${u.is_active ? "active" : "suspended"}</span></td>
+          <td>${u.is_platform_admin ? '<span class="badge warn">platform</span>' : "—"}</td>
+          <td>${esc(grants)}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    async function loadAudit() {
+      const qs = new URLSearchParams({ limit: String(state.limit), offset: String(state.auditOff) });
+      const action = $("audit-action").value.trim();
+      const actor = $("audit-actor").value.trim();
+      const rtype = $("audit-rtype").value.trim();
+      if (action) qs.set("action", action);
+      if (actor) qs.set("actor_id", actor);
+      if (rtype) qs.set("resource_type", rtype);
+      const data = await api("GET", "/v1/admin/audit?" + qs);
+      state.events = data.events || [];
+      $("audit-meta").textContent = `${data.total} events`;
+      $("audit-rows").innerHTML = state.events.map((e) =>
+        `<tr data-audit-id="${esc(e.id)}">
+          <td>${esc(when(e.occurred_at))}</td>
+          <td>${esc(e.action)}</td>
+          <td><code>${esc(e.actor_id || "—")}</code></td>
+          <td>${esc(e.ip_address || "—")}</td>
+          <td><code>${esc((e.integrity_hash || "").slice(0, 12))}</code></td>
+        </tr>`
+      ).join("");
+    }
+
+    async function loadSystem() {
+      const [health, metrics] = await Promise.all([
+        fetch("/health").then((r) => r.json()),
+        fetch("/metrics").then((r) => r.json()),
+      ]);
+      $("sys-health").innerHTML = `<h3>Health</h3><p>status <b>${esc(health.status)}</b> · database ${esc(health.checks.database)} · jwt_keys ${esc(health.checks.jwt_keys)}</p>`;
+      const counters = metrics.counters || {};
+      const rows = Object.keys(counters).length
+        ? Object.entries(counters).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")
+        : `<tr><td colspan="2">No counters yet</td></tr>`;
+      $("sys-metrics").innerHTML = `<h3>Counters</h3><table><thead><tr><th>Metric</th><th>Value</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    function openDrawer(html) {
+      $("drawer").innerHTML = html;
+      $("drawer-bg").classList.remove("hidden");
+    }
+    function closeDrawer() { $("drawer-bg").classList.add("hidden"); }
+
+    function openUser(id) {
+      const u = state.users.find((x) => x.id === id);
+      if (!u) return;
+      const orgs = (u.orgs || []).map((o) => `<li>${esc(o.name)} · ${esc(o.role)}</li>`).join("") || "<li>None</li>";
+      const grants = (u.grants || []).map((g) => `<li>${esc(g.audience)} · ${esc(g.role)}</li>`).join("") || "<li>None</li>";
+      openDrawer(`
+        <h2 style="font-family:var(--sans);margin:0 0 8px">${esc(u.display_name || u.email)}</h2>
+        <p class="lede">${esc(u.email)}</p>
+        <p><span class="badge ${u.is_active ? "ok" : "bad"}">${u.is_active ? "active" : "suspended"}</span>
+           ${u.is_platform_admin ? '<span class="badge warn">platform admin</span>' : ""}</p>
+        <p><code>${esc(u.id)}</code></p>
+        <h3>Organizations</h3><ul>${orgs}</ul>
+        <h3>Product grants</h3><ul>${grants}</ul>
+        <div class="field"><label>Audience</label><input id="g-aud" placeholder="myproduct" /></div>
+        <div class="field" style="margin-top:8px"><label>Role</label>
+          <select id="g-role"><option>operator</option><option>admin</option><option>viewer</option></select>
+        </div>
+        <p style="margin-top:12px"><button class="btn" id="g-save" type="button">Save grant</button></p>
+        <p><button class="btn ${u.is_active ? "warn" : "ok"}" id="u-toggle" type="button">${u.is_active ? "Suspend account" : "Activate account"}</button></p>
+        <p><button class="btn ghost" id="d-close" type="button">Close</button></p>
+      `);
+      $("d-close").onclick = closeDrawer;
+      $("g-save").onclick = async () => {
+        try {
+          await api("POST", "/v1/admin/grants", { user_id: u.id, audience: $("g-aud").value.trim(), role: $("g-role").value });
+          toast("Grant saved");
+          closeDrawer();
+          await loadUsers();
+        } catch (err) { toast(err.message); }
+      };
+      $("u-toggle").onclick = () => confirmAction(
+        u.is_active ? "Suspend this account?" : "Activate this account?",
+        u.is_active ? "They will not be able to refresh tokens." : "Access will be restored.",
+        async () => {
+          await api("PATCH", `/v1/admin/users/${u.id}/active`, { is_active: !u.is_active });
+          toast(u.is_active ? "Account suspended" : "Account activated");
+          closeDrawer();
+          await loadUsers();
+        }
+      );
+    }
+
+    function openAudit(id) {
+      const e = state.events.find((x) => x.id === id);
+      if (!e) return;
+      openDrawer(`
+        <h2 style="font-family:var(--sans);margin:0 0 8px">${esc(e.action)}</h2>
+        <p>${esc(when(e.occurred_at))}</p>
+        <p>actor <code>${esc(e.actor_type)}</code> ${esc(e.actor_id || "")}</p>
+        <p>resource <code>${esc(e.resource_type)}</code> ${esc(e.resource_id || "")}</p>
+        <p>IP ${esc(e.ip_address || "—")}</p>
+        <p>UA ${esc(e.user_agent || "—")}</p>
+        <p>integrity<br><code>${esc(e.integrity_hash || "—")}</code></p>
+        <pre style="white-space:pre-wrap;background:#faf6ee;padding:10px;border-radius:8px">${esc(e.details || "{}")}</pre>
+        <p><button class="btn ghost" id="d-close" type="button">Close</button></p>
+      `);
+      $("d-close").onclick = closeDrawer;
+    }
+
+    function confirmAction(title, body, onYes) {
+      $("modal-bg").innerHTML = `<div class="modal"><h2 style="margin-top:0;font-family:var(--sans)">${esc(title)}</h2><p>${esc(body)}</p>
+        <p><button class="btn warn" id="m-yes" type="button">Confirm</button>
+        <button class="btn ghost" id="m-no" type="button">Cancel</button></p></div>`;
+      $("modal-bg").classList.remove("hidden");
+      $("m-no").onclick = () => $("modal-bg").classList.add("hidden");
+      $("m-yes").onclick = async () => {
+        $("modal-bg").classList.add("hidden");
+        try { await onYes(); } catch (err) { toast(err.message); }
+      };
+    }
+
+    $("login-form").onsubmit = async (ev) => {
+      ev.preventDefault();
+      $("login-err").textContent = "";
+      try {
+        const data = await api("POST", "/v1/auth/login", { email: $("email").value, password: $("password").value });
+        state.token = data.access_token;
+        sessionStorage.setItem(KEY, state.token);
+        const me = await api("GET", "/v1/auth/me");
+        if (!me.is_platform_admin) throw new Error("This account is not a platform admin");
+        $("who-email").textContent = me.email;
+        showApp(true);
+        showView("overview");
+      } catch (err) {
+        $("login-err").textContent = err.message;
+      }
+    };
+
+    $("signout").onclick = () => signOut(true);
+    document.querySelectorAll("nav [data-view]").forEach((b) => b.onclick = () => showView(b.dataset.view).catch((e) => toast(e.message)));
+    $("user-search").onclick = () => { state.usersOff = 0; loadUsers().catch((e) => toast(e.message)); };
+    $("user-q").addEventListener("keydown", (e) => { if (e.key === "Enter") $("user-search").click(); });
+    $("user-prev").onclick = () => { state.usersOff = Math.max(0, state.usersOff - state.limit); loadUsers(); };
+    $("user-next").onclick = () => { state.usersOff += state.limit; loadUsers(); };
+    $("user-rows").onclick = (e) => { const tr = e.target.closest("[data-user]"); if (tr) openUser(tr.dataset.user); };
+    $("audit-load").onclick = () => { state.auditOff = 0; loadAudit().catch((e) => toast(e.message)); };
+    $("audit-prev").onclick = () => { state.auditOff = Math.max(0, state.auditOff - state.limit); loadAudit(); };
+    $("audit-next").onclick = () => { state.auditOff += state.limit; loadAudit(); };
+    $("audit-rows").onclick = (e) => { const tr = e.target.closest("[data-audit-id]"); if (tr) openAudit(tr.dataset.auditId); };
+    $("drawer-bg").addEventListener("click", (e) => { if (e.target === $("drawer-bg")) closeDrawer(); });
+
+    if (state.token) {
+      api("GET", "/v1/auth/me").then((me) => {
+        if (!me.is_platform_admin) throw new Error("not admin");
+        $("who-email").textContent = me.email;
+        showApp(true);
+        showView("overview");
+      }).catch(() => signOut(true));
+    }
+  </script>
+</body>
+</html>

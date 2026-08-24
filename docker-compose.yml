@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: auth
+      POSTGRES_PASSWORD: auth
+      POSTGRES_DB: auth
+    ports:
+      - "5433:5432"
+    volumes:
+      - auth_pg:/var/lib/postgresql/data
+
+  auth:
+    build: .
+    ports:
+      - "8090:8090"
+    environment:
+      AUTH_DATABASE_URL: postgresql+psycopg://auth:auth@db:5432/auth
+      AUTH_ISSUER: ${AUTH_ISSUER:-https://auth.pisigma.local}
+      AUTH_HOST: 0.0.0.0
+      AUTH_PORT: 8090
+      AUTH_CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://localhost:8787,http://localhost:8090
+      AUTH_SPA_CALLBACK_URL: http://localhost:5173/auth/callback
+      AUTH_OPEN_REGISTRATION: ${AUTH_OPEN_REGISTRATION:-false}
+      AUTH_BOOTSTRAP_TOKEN: ${AUTH_BOOTSTRAP_TOKEN:-}
+      AUTH_JWT_PRIVATE_KEY_FILE: /run/secrets/auth_private.pem
+      AUTH_JWT_PUBLIC_KEY_FILE: /run/secrets/auth_public.pem
+      AUTH_DEFAULT_AUDIENCES: ${AUTH_DEFAULT_AUDIENCES:-}
+      AUTH_GOOGLE_CLIENT_ID: ${AUTH_GOOGLE_CLIENT_ID:-}
+      AUTH_GOOGLE_CLIENT_SECRET: ${AUTH_GOOGLE_CLIENT_SECRET:-}
+      AUTH_GITHUB_CLIENT_ID: ${AUTH_GITHUB_CLIENT_ID:-}
+      AUTH_GITHUB_CLIENT_SECRET: ${AUTH_GITHUB_CLIENT_SECRET:-}
+      AUTH_MAIL_BASE_URL: ${AUTH_MAIL_BASE_URL:-}
+      AUTH_MAIL_API_KEY: ${AUTH_MAIL_API_KEY:-}
+    volumes:
+      - ${AUTH_JWT_PRIVATE_KEY_FILE:-./private.pem}:/run/secrets/auth_private.pem:ro
+      - ${AUTH_JWT_PUBLIC_KEY_FILE:-./public.pem}:/run/secrets/auth_public.pem:ro
+    depends_on:
+      - db
+
+volumes:
+  auth_pg:
