@@ -112,8 +112,13 @@ fi
 echo -e "${GREEN}Server is up and healthy!${NC}"
 
 # ------------------------------------------------------------------------------
-# 2. Health & JWKS Endpoints
+# 2. Health, Landing Page & JWKS Endpoints
 # ------------------------------------------------------------------------------
+log_step "Testing GET / (Production Landing Page)..."
+LANDING_RES=$(curl -s -w "\n%{http_code}" "${BASE_URL}/")
+LANDING_CODE=$(echo "${LANDING_RES}" | tail -n1)
+assert_status 200 "${LANDING_CODE}" "GET / (Landing Page)"
+
 log_step "Testing GET /health..."
 HEALTH_RES=$(curl -s -w "\n%{http_code}" "${BASE_URL}/health")
 HEALTH_BODY=$(echo "${HEALTH_RES}" | head -n1)

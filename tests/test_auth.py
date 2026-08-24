@@ -1270,6 +1270,22 @@ def test_reset_password_rate_limit(client):
     assert last_status == 429
 
 
+def test_landing_page_served(client):
+    r = client.get("/")
+    assert r.status_code == 200
+    assert b"OpenDesk Auth" in r.content
+
+
+def test_seo_endpoints_served(client):
+    r_robots = client.get("/robots.txt")
+    assert r_robots.status_code == 200
+    assert b"User-agent:" in r_robots.content
+
+    r_sitemap = client.get("/sitemap.xml")
+    assert r_sitemap.status_code == 200
+    assert b"<urlset" in r_sitemap.content
+
+
 def test_admin_console_served(client):
     r = client.get("/admin/console")
     assert r.status_code == 200
@@ -1380,6 +1396,18 @@ def test_org_members_and_delete(client):
     assert removed.status_code == 200
     gone = client.delete(f"/v1/orgs/{org['id']}", headers={"Authorization": f"Bearer {owner['access_token']}"})
     assert gone.status_code == 200
+
+
+def test_auth_ui_routes(client):
+    r1 = client.get("/auth")
+    assert r1.status_code == 200
+    assert "OpenDesk Auth" in r1.text
+    assert "view-login" in r1.text
+
+    r2 = client.get("/auth/ui")
+    assert r2.status_code == 200
+    assert "OpenDesk Auth" in r2.text
+
 
 
 def test_metrics_counts_register(client):

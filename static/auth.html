@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OpenDesk Auth</title>
+  <style>
+    :root {
+      --bg: #0a0a0d;
+      --card-bg: #111114;
+      --input-bg: #18181b;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(255, 255, 255, 0.25);
+      --text: #f4f4f5;
+      --text-muted: #71717a;
+      --text-dim: #3f3f46;
+      --btn-bg: #ffffff;
+      --btn-text: #000000;
+      --btn-hover: #e4e4e7;
+      --error-bg: rgba(239, 68, 68, 0.1);
+      --error-text: #f87171;
+      --error-border: rgba(239, 68, 68, 0.2);
+      --success-bg: rgba(34, 197, 94, 0.1);
+      --success-text: #4ade80;
+      --success-border: rgba(34, 197, 94, 0.2);
+      --radius: 8px;
+      --sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+    }
+
+    .auth-container {
+      display: flex;
+      width: 100vw;
+      min-height: 100vh;
+    }
+
+    /* Left Panel - Brand & Atmosphere */
+    .brand-panel {
+      width: 45%;
+      background: #070709;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+      position: relative;
+    }
+
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .brand-body {
+      max-width: 360px;
+    }
+
+    .brand-headline {
+      font-size: 1.75rem;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .brand-subline {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .brand-footer {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      font-family: var(--mono);
+    }
+
+    /* Right Panel - Interactive Form */
+    .form-panel {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      background: var(--bg);
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .form-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .form-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* Form Fields */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input-wrap {
+      position: relative;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .form-input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .pwd-toggle {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .form-checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .form-link {
+      font-size: 0.8rem;
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .form-link:hover {
+      text-decoration: underline;
+    }
+
+    .btn-primary {
+      width: 100%;
+      height: 42px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+
+    .btn-primary:hover {
+      background: var(--btn-hover);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 24px 0;
+      color: var(--text-dim);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      padding: 0 12px;
+    }
+
+    .social-buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-social {
+      flex: 1;
+      height: 40px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .btn-social:hover {
+      border-color: var(--border-focus);
+      background: #18181c;
+    }
+
+    /* Alert / Notification box */
+    .alert {
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert-error {
+      background: var(--error-bg);
+      color: var(--error-text);
+      border: 1px solid var(--error-border);
+    }
+
+    .alert-success {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
+    }
+
+    .form-view {
+      display: none;
+    }
+
+    .form-view.active {
+      display: block;
+    }
+
+    /* Responsive Breakdown */
+    @media (max-width: 860px) {
+      .brand-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <!-- Left Brand Panel -->
+    <div class="brand-panel">
+      <div class="brand-header">
+        <div class="brand-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="brand-title">OpenDesk Auth</div>
+      </div>
+      <div class="brand-body">
+        <h1 class="brand-headline">Secure identity infrastructure</h1>
+        <p class="brand-subline">Decoupled RS256 JWT authentication engine with stateless JWKS verification.</p>
+      </div>
+      <div class="brand-footer">OpenDesk Identity Engine v1.0</div>
+    </div>
+
+    <!-- Right Form Panel -->
+    <div class="form-panel">
+      <div class="form-box">
+        <div id="alert-box" class="alert"></div>
+
+        <!-- LOGIN VIEW -->
+        <div id="view-login" class="form-view active">
+          <h2 class="form-title">Sign in</h2>
+          <p class="form-subtitle">Enter your credentials to access your account</p>
+          <form id="form-login">
+            <div class="form-group">
+              <label class="form-label">Email address</label>
+              <input type="email" id="login-email" class="form-input" required autocomplete="email" placeholder="name@company.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="form-input-wrap">
+                <input type="password" id="login-password" class="form-input" required autocomplete="current-password" placeholder="••••••••" />
+                <button type="button" class="pwd-toggle" data-target="login-password">Show</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="form-checkbox-wrap">
+                <input type="checkbox" id="login-remember" /> Remember me
+              </label>
+              <a href="#forgot-password" class="form-link">Forgot password?</a>
+            </div>
+            <button type="submit" class="btn-primary" id="btn-login">Sign in</button>
+          </form>
+          <div class="divider"><span>Or continue with</span></div>
+          <div class="social-buttons">
+            <button class="btn-social" id="btn-oauth-google">Google</button>
+            <button class="btn-social" id="btn-oauth-github">GitHub</button>
+          </div>
+          <div style="margin-top: 24px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+            Don't have an account? <a href="#register" class="form-link">Sign up</a>
+          </div>
+        </div>
+
+        <!-- REGISTER VIEW -->
+        <div id="view-register" class="form-view">
+          <h2 class="form-title">Create an account</h2>
+          <p class="form-subtitle">Get started with OpenDesk Auth</p>
+          <form id="form-register">
+            <div class="form-group">
+              <label class="form-label">Email address</label>
+              <input type="email" id="reg-email" class="form-input" required autocomplete="email" placeholder="name@company.com" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div class="form-input-wrap">
+                <input type="password" id="reg-password" class="form-input" required autocomplete="new-password" placeholder="Minimum 8 characters" />
+                <button type="button" class="pwd-toggle" data-target="reg-password">Show</button>
+              </div>
+            </div>
+            <div class="form-group" id="group-bootstrap" style="display:none;">
+              <label class="form-label">Bootstrap Token (Admin)</label>
+              <input type="text" id="reg-bootstrap" class="form-input" placeholder="Required for first user" />
+            </div>
+            <button type="submit" class="btn-primary" id="btn-register">Create account</button>
+          </form>
+          <div style="margin-top: 24px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+            Already have an account? <a href="#login" class="form-link">Sign in</a>
+          </div>
+        </div>
+
+        <!-- FORGOT PASSWORD VIEW -->
+        <div id="view-forgot-password" class="form-view">
+          <h2 class="form-title">Reset password</h2>
+          <p class="form-subtitle">Enter your email and we'll send a recovery link</p>
+          <form id="form-forgot">
+            <div class="form-group">
+              <label class="form-label">Email address</label>
+              <input type="email" id="forgot-email" class="form-input" required placeholder="name@company.com" />
+            </div>
+            <button type="submit" class="btn-primary" id="btn-forgot">Send reset link</button>
+          </form>
+          <div style="margin-top: 24px; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+            Back to <a href="#login" class="form-link">Sign in</a>
+          </div>
+        </div>
+
+        <!-- RESET PASSWORD VIEW -->
+        <div id="view-reset-password" class="form-view">
+          <h2 class="form-title">Set new password</h2>
+          <p class="form-subtitle">Enter your new password below</p>
+          <form id="form-reset">
+            <input type="hidden" id="reset-token" />
+            <div class="form-group">
+              <label class="form-label">New Password</label>
+              <div class="form-input-wrap">
+                <input type="password" id="reset-password-val" class="form-input" required placeholder="Minimum 8 characters" />
+                <button type="button" class="pwd-toggle" data-target="reset-password-val">Show</button>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" id="btn-reset">Update password</button>
+          </form>
+        </div>
+
+        <!-- VERIFY EMAIL VIEW -->
+        <div id="view-verify-email" class="form-view">
+          <h2 class="form-title">Email Verification</h2>
+          <p class="form-subtitle" id="verify-status">Verifying your email address...</p>
+          <div style="margin-top: 24px; text-align: center;">
+            <a href="#login" class="btn-primary" style="display:inline-block; line-height:42px; text-decoration:none;">Proceed to Login</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Router & View Management
+    const views = {
+      'login': document.getElementById('view-login'),
+      'register': document.getElementById('view-register'),
+      'forgot-password': document.getElementById('view-forgot-password'),
+      'reset-password': document.getElementById('view-reset-password'),
+      'verify-email': document.getElementById('view-verify-email')
+    };
+
+    const alertBox = document.getElementById('alert-box');
+
+    function showAlert(msg, type = 'error') {
+      alertBox.textContent = msg;
+      alertBox.className = `alert alert-${type}`;
+      alertBox.style.display = 'block';
+    }
+
+    function hideAlert() {
+      alertBox.style.display = 'none';
+      alertBox.textContent = '';
+    }
+
+    function route() {
+      hideAlert();
+      const hash = (window.location.hash || '#login').replace('#', '').split('?')[0];
+      const targetView = views[hash] || views['login'];
+
+      Object.values(views).forEach(v => v.classList.remove('active'));
+      targetView.classList.add('active');
+
+      // Handle token query parameters for reset/verify views
+      const urlParams = new URLSearchParams(window.location.search || (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : ''));
+      const token = urlParams.get('token');
+
+      if (hash === 'reset-password' && token) {
+        document.getElementById('reset-token').value = token;
+      }
+
+      if (hash === 'verify-email' && token && typeof autoVerifyEmail === 'function') {
+        autoVerifyEmail(token);
+      }
+    }
+
+    window.addEventListener('hashchange', route);
+    window.addEventListener('DOMContentLoaded', () => {
+      route();
+      setupPasswordToggles();
+    });
+
+    function setupPasswordToggles() {
+      document.querySelectorAll('.pwd-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const input = document.getElementById(btn.dataset.target);
+          if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = 'Hide';
+          } else {
+            input.type = 'password';
+            btn.textContent = 'Show';
+          }
+        });
+      });
+    }
+
+    // API Fetch Utility
+    async function apiFetch(endpoint, data) {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errorMsg = json.error || json.detail || (Array.isArray(json.detail) ? json.detail[0].msg : 'An unexpected error occurred');
+        throw new Error(errorMsg);
+      }
+      return json;
+    }
+
+    // 1. Login Handler
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true;
+      btn.textContent = 'Signing in...';
+
+      try {
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const remember = document.getElementById('login-remember').checked;
+
+        const res = await apiFetch('/v1/auth/login', { email, password });
+        
+        const storage = remember ? localStorage : sessionStorage;
+        storage.setItem('access_token', res.access_token);
+        storage.setItem('refresh_token', res.refresh_token);
+
+        showAlert('Login successful! Redirecting...', 'success');
+        setTimeout(() => {
+          const redirect = new URLSearchParams(window.location.search).get('redirect') || '/';
+          window.location.href = redirect;
+        }, 1000);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sign in';
+      }
+    });
+
+    // 2. Register Handler
+    document.getElementById('form-register').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const btn = document.getElementById('btn-register');
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        const email = document.getElementById('reg-email').value;
+        const password = document.getElementById('reg-password').value;
+        const bootstrap_token = document.getElementById('reg-bootstrap').value || undefined;
+
+        const payload = { email, password };
+        if (bootstrap_token) payload.bootstrap_token = bootstrap_token;
+
+        const res = await apiFetch('/v1/auth/register', payload);
+        
+        if (res.verification_required) {
+          showAlert('Registration successful! Please check your email to verify your account.', 'success');
+        } else if (res.access_token) {
+          localStorage.setItem('access_token', res.access_token);
+          localStorage.setItem('refresh_token', res.refresh_token);
+          showAlert('Account created! Redirecting...', 'success');
+          setTimeout(() => { window.location.href = '/'; }, 1000);
+        } else {
+          showAlert('Registration successful. Please log in.', 'success');
+          window.location.hash = '#login';
+        }
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create account';
+      }
+    });
+
+    // 3. Forgot Password Handler
+    document.getElementById('form-forgot').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const btn = document.getElementById('btn-forgot');
+      btn.disabled = true;
+
+      try {
+        const email = document.getElementById('forgot-email').value;
+        await apiFetch('/v1/auth/forgot-password', { email });
+        showAlert('If an account exists with that email, a password reset link has been sent.', 'success');
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // 4. Reset Password Handler
+    document.getElementById('form-reset').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert();
+      const btn = document.getElementById('btn-reset');
+      btn.disabled = true;
+
+      try {
+        const token = document.getElementById('reset-token').value;
+        const new_password = document.getElementById('reset-password-val').value;
+        await apiFetch('/v1/auth/reset-password', { token, new_password });
+        showAlert('Password reset successful! You can now log in.', 'success');
+        setTimeout(() => { window.location.hash = '#login'; }, 1500);
+      } catch (err) {
+        showAlert(err.message, 'error');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // 5. Auto Verify Email Handler
+    async function autoVerifyEmail(token) {
+      const statusEl = document.getElementById('verify-status');
+      try {
+        await apiFetch('/v1/auth/verify-email', { token });
+        statusEl.textContent = 'Email verified successfully! You may now sign in.';
+        showAlert('Email verified!', 'success');
+      } catch (err) {
+        statusEl.textContent = 'Verification failed or link expired.';
+        showAlert(err.message, 'error');
+      }
+    }
+
+    // 6. OAuth Handlers
+    document.getElementById('btn-oauth-google').addEventListener('click', () => {
+      window.location.href = '/v1/oauth/google/start';
+    });
+    document.getElementById('btn-oauth-github').addEventListener('click', () => {
+      window.location.href = '/v1/oauth/github/start';
+    });
+  </script>
+</body>
+</html>

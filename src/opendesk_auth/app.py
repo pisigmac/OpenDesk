@@ -113,6 +113,38 @@ def create_app() -> FastAPI:
 
         return {"service": "opendesk-auth", "counters": snapshot()}
 
+    @app.get("/", include_in_schema=False)
+    def landing_page() -> FileResponse:
+        from pathlib import Path
+
+        page = Path(__file__).resolve().parents[2] / "static" / "index.html"
+        if not page.is_file():
+            return JSONResponse(status_code=404, content={"error": "Landing page not packaged", "code": "HTTP_404"})
+        resp = FileResponse(page, media_type="text/html")
+        resp.headers["Content-Security-Policy"] = (
+            "default-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:"
+        )
+        return resp
+
+    @app.get("/robots.txt", include_in_schema=False)
+    def robots_txt() -> FileResponse:
+        from pathlib import Path
+
+        file_path = Path(__file__).resolve().parents[2] / "static" / "robots.txt"
+        if not file_path.is_file():
+            return JSONResponse(status_code=404, content={"error": "robots.txt missing", "code": "HTTP_404"})
+        return FileResponse(file_path, media_type="text/plain")
+
+    @app.get("/sitemap.xml", include_in_schema=False)
+    def sitemap_xml() -> FileResponse:
+        from pathlib import Path
+
+        file_path = Path(__file__).resolve().parents[2] / "static" / "sitemap.xml"
+        if not file_path.is_file():
+            return JSONResponse(status_code=404, content={"error": "sitemap.xml missing", "code": "HTTP_404"})
+        return FileResponse(file_path, media_type="application/xml")
+
     @app.get("/admin/console", include_in_schema=False)
     def admin_console() -> FileResponse:
         from pathlib import Path
@@ -120,6 +152,21 @@ def create_app() -> FastAPI:
         page = Path(__file__).resolve().parents[2] / "static" / "admin.html"
         if not page.is_file():
             return JSONResponse(status_code=404, content={"error": "Admin console not packaged", "code": "HTTP_404"})
+        resp = FileResponse(page, media_type="text/html")
+        resp.headers["Content-Security-Policy"] = (
+            "default-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:"
+        )
+        return resp
+
+    @app.get("/auth", include_in_schema=False)
+    @app.get("/auth/ui", include_in_schema=False)
+    def auth_ui() -> FileResponse:
+        from pathlib import Path
+
+        page = Path(__file__).resolve().parents[2] / "static" / "auth.html"
+        if not page.is_file():
+            return JSONResponse(status_code=404, content={"error": "Auth UI not packaged", "code": "HTTP_404"})
         resp = FileResponse(page, media_type="text/html")
         resp.headers["Content-Security-Policy"] = (
             "default-src 'self'; style-src 'self' 'unsafe-inline'; "

@@ -1,0 +1,18 @@
+# ==============================================================================
+# OpenDesk Auth — Web Crawler & Indexing Instructions
+# ==============================================================================
+
+User-agent: *
+Allow: /
+Allow: /docs
+Allow: /redoc
+Allow: /health
+Allow: /.well-known/jwks.json
+
+# Disallow internal admin endpoints & API routes from search indexation
+Disallow: /v1/admin/
+Disallow: /v1/auth/
+Disallow: /v1/orgs/
+Disallow: /introspect
+
+Sitemap: https://auth.opendesk.local/sitemap.xml
